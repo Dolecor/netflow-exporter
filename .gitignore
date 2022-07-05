@@ -1,0 +1,20 @@
+.vscode
+
+# autoreconf --install
+aclocal.m4
+autom4te.cache/
+build-aux/
+configure
+config.h.in
+Makefile
+Makefile.in
+
+# configure and make
+build/
+
+# debian files
+debian/*
+!debian/rules
+!debian/control
+!debian/changelog
+!debian/copyright
