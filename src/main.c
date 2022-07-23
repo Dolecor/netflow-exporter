@@ -30,6 +30,7 @@
 
 #include "nf_table.h"
 #include <assert.h>
+#include "hash_functions/hash_functions.h"
 
 #define PROGRAM_NAME "nfexp"
 
@@ -82,12 +83,6 @@ static void parse_options(int argc, char *argv[], options_t *options)
     }
 }
 
-uint32_t dummy(const void *key, const size_t length)
-{
-    nf_flow_spec_t *flow_spec = (nf_flow_spec_t *)key;
-    return flow_spec->dst_ip;
-}
-
 int main(int argc, char *argv[])
 {
     // int ret;
@@ -99,10 +94,12 @@ int main(int argc, char *argv[])
     // exit(ret);
 
     nf_table_t *nft;
+    hash_func_t hash_func;
     nf_flow_spec_t flow_spec;
     int ret;
 
-    nf_table_init(&nft, dummy);
+    hash_func_init(&hash_func, MURMUR3_HASH);
+    nf_table_init(&nft, hash_func);
 
     for (int i = 0; i < 1024; ++i) {
         flow_spec.dst_ip = i;

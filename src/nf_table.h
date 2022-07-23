@@ -11,10 +11,9 @@
 #include <pthread.h>
 
 #include "nf_flow.h"
+#include "hash_functions/hash_functions.h"
 
 #define NR_BUCKETS 1024 * 1024 /* Number of buckets, pow of 2 */
-
-typedef uint32_t (*hash_func_t)(const void *key, const size_t length);
 
 typedef struct bucket_entry {
     struct bucket_entry *next;

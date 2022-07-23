@@ -1,0 +1,3 @@
+[submodule "hash_functions/murmur3"]
+	path = hash_functions/murmur3
+	url = https://github.com/PeterScott/murmur3
