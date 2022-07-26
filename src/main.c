@@ -47,11 +47,9 @@ static void print_help_and_exit(char *msg)
     fprintf(stderr, "\n");
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -h, --help              Print this help and exit\n");
-    fprintf(stderr, "  -i                      Interface name (e.g. eth0)\n");
-    fprintf(
-        stderr,
-        "  -c                      IP address and UDP port number of the host\n"
-        "                          with NetFlow collector in format IP:port\n");
+    fprintf(stderr, "  -i <ifname>             Interface name (e.g. eth0)\n");
+    fprintf(stderr, "  -c <IP:port>            IP address and UDP port number of the host\n"
+                    "                          with NetFlow collector in format IP:port\n");
 
     exit(EXIT_FAILURE);
 }
@@ -67,19 +65,19 @@ static void parse_options(int argc, char *argv[], options_t *options)
     static const struct option long_opts[] = {{"help", no_argument, NULL, 'h'},
                                               {NULL, 0, NULL, 0}};
 
-    while ((opt = getopt_long(argc, argv, "h", long_opts, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "i:c:h", long_opts, NULL)) != -1) {
         switch (opt) {
+        case 'i':
+            strncpy(options->if_name, optarg, IF_NAMESIZE);
+            break;
+        case 'c':
+
+            break;
         case 'h':
             print_help_and_exit(NULL);
         default:
             print_help_and_exit(NULL);
         }
-    }
-
-    if (optind < argc) {
-        strncpy(options->if_name, argv[optind], IF_NAMESIZE);
-    } else {
-        print_help_and_exit("Interface name must be specified.");
     }
 }
 
@@ -98,10 +96,11 @@ int main(int argc, char *argv[])
     nf_flow_spec_t flow_spec;
     int ret;
 
+
     hash_func_init(&hash_func, MURMUR3_HASH);
     nf_table_init(&nft, hash_func);
 
-    for (int i = 0; i < 1024; ++i) {
+    for (int i = 0; i < 1024 * 512; ++i) {
         flow_spec.dst_ip = i;
         nf_table_add(nft, flow_spec);
     }

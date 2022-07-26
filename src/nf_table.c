@@ -88,6 +88,8 @@ int nf_table_add(nf_table_t *nft, nf_flow_spec_t flow_spec)
         nft->hash_func(&flow_spec, sizeof(nf_flow_spec_t)) % NR_BUCKETS;
     bucket_entry_t *it = nft->buckets[hash].head;
 
+    pthread_mutex_lock(&nft->bkt_mutexes[hash]);
+
     while (it != NULL) {
         if (memcmp(&flow_spec, &it->flow.flow_spec, sizeof(nf_flow_spec_t))
             == 0) {
@@ -101,6 +103,8 @@ int nf_table_add(nf_table_t *nft, nf_flow_spec_t flow_spec)
         ++nft->size;
     }
 
+    pthread_mutex_unlock(&nft->bkt_mutexes[hash]);
+
     return (it == NULL);
 }
 
@@ -109,6 +113,8 @@ int nf_table_remove(nf_table_t *nft, nf_flow_spec_t flow_spec)
     uint32_t hash =
         nft->hash_func(&flow_spec, sizeof(nf_flow_spec_t)) % NR_BUCKETS;
     bucket_entry_t *it = nft->buckets[hash].head;
+
+    pthread_mutex_lock(&nft->bkt_mutexes[hash]);
 
     while (it != NULL) {
         if (memcmp(&flow_spec, &it->flow.flow_spec, sizeof(nf_flow_spec_t))
@@ -122,6 +128,8 @@ int nf_table_remove(nf_table_t *nft, nf_flow_spec_t flow_spec)
         bucket_entry_remove(&nft->buckets[hash], it);
         --nft->size;
     }
+
+    pthread_mutex_unlock(&nft->bkt_mutexes[hash]);
 
     return (it != NULL);
 }

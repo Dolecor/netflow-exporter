@@ -4,8 +4,8 @@
  * file LICENSE or http://www.opensource.org/licenses/mit-license.php.
  */
 
-#ifndef NF_FLOW_H
-#define NF_FLOW_H
+#ifndef NF_DEFS_H
+#define NF_DEFS_H
 
 #include <netinet/in.h>
 #include <netinet/ip.h>
@@ -45,9 +45,9 @@ enum {
 
 /* Flowset IDs */
 enum {
-    FLOWSET_TEMPLATE = 0,
-    FLOWSET_OPTIONS = 1,
-    FLOWSET_DATA_FIRST = 256,
+    FLOWSET_TEMPLATE_ID = 0,
+    FLOWSET_OPTIONS_ID = 1,
+    FLOWSET_DATA_FIRST_ID = 256,
 };
 
 /* Scope types */
@@ -59,6 +59,7 @@ enum {
     SCOPE_TEMPLATE = 5,
 };
 
+/* Flow definition */
 typedef struct nf_flow_spec {
     uint32_t src_ip;
     uint32_t dst_ip;
@@ -102,4 +103,43 @@ typedef struct nf_flow {
     nf_flow_export_t export_data;
 } nf_flow_t;
 
-#endif /* NF_FLOW_H */
+/* RFC 3954: 5.1.  Header Format */
+typedef struct export_packet_header {
+    uint16_t version;
+    uint16_t count;
+    uint32_t sys_up_time;
+    uint32_t unix_secs;
+    uint32_t sequence_number;
+    uint32_t source_id;
+} export_packet_header_t;
+
+#define EXPORT_DATA_SIZE 1400
+typedef struct export_packet {
+    export_packet_header_t header;
+    uint8_t *data[EXPORT_DATA_SIZE]; /* flowsets */
+} export_packet_t;
+
+/* RFC 3954: 5.2.  Template FlowSet Format */
+typedef struct template_flowset {
+    uint8_t flowset_id;
+    uint8_t length;
+    uint8_t template_id;
+    uint8_t field_count;
+} template_flowset_t;
+
+/* RFC 3954: 5.3.  Data FlowSet Format */
+typedef struct data_flowset {
+    uint8_t flowset_id;
+    uint8_t length;
+} data_flowset_t;
+
+/* RFC 3954: 6.1.  Options Template FlowSet Format */
+typedef struct options_template_flowset {
+    uint8_t flowset_id;
+    uint8_t length;
+    uint8_t template_id;
+    uint8_t opt_scope_length;
+    uint8_t option_length;
+} options_template_flowset_t;
+
+#endif /* NF_DEFS_H */

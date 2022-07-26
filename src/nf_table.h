@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#include "nf_flow.h"
+#include "nf_defs.h"
 #include "hash_functions/hash_functions.h"
 
 #define NR_BUCKETS 1024 * 1024 /* Number of buckets, pow of 2 */
