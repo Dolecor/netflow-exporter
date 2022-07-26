@@ -24,18 +24,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <arpa/inet.h>
 #include <net/if.h>
+#include <netinet/in.h>
 #include <getopt.h>
 #include <limits.h>
+#include <errno.h>
 
-#include "nf_table.h"
-#include <assert.h>
-#include "hash_functions/hash_functions.h"
+#include "nf_export.h"
 
 #define PROGRAM_NAME "nfexp"
 
 typedef struct options {
     char if_name[IF_NAMESIZE];
+    collector_info_t collector;
 } options_t;
 
 static void print_help_and_exit(char *msg)
@@ -54,24 +56,32 @@ static void print_help_and_exit(char *msg)
     exit(EXIT_FAILURE);
 }
 
+static int parse_collector(const char *buf, uint32_t *ip, uint16_t *port);
+
 static void parse_options(int argc, char *argv[], options_t *options)
 {
     int opt;
+    int ifname = 0;
+    int colstr = 0;
 
-    enum {
-        A = CHAR_MAX + 1,
+    static const struct option long_opts[] = {
+        {"help", no_argument, NULL, 'h'},
+        {NULL, 0, NULL, 0}
     };
-
-    static const struct option long_opts[] = {{"help", no_argument, NULL, 'h'},
-                                              {NULL, 0, NULL, 0}};
 
     while ((opt = getopt_long(argc, argv, "i:c:h", long_opts, NULL)) != -1) {
         switch (opt) {
         case 'i':
             strncpy(options->if_name, optarg, IF_NAMESIZE);
+            ifname = 1;
             break;
         case 'c':
-
+            if (parse_collector(optarg, &options->collector.ip,
+                                &options->collector.port)
+                < 0) {
+                print_help_and_exit("Invalid collector string format.");
+            }
+            colstr = 1;
             break;
         case 'h':
             print_help_and_exit(NULL);
@@ -79,41 +89,77 @@ static void parse_options(int argc, char *argv[], options_t *options)
             print_help_and_exit(NULL);
         }
     }
+
+    if (ifname == 0) {
+        print_help_and_exit("Interface name must be specified with -i option.");
+    }
+    if (colstr == 0) {
+        print_help_and_exit("IP address and UDP port number of collector\n"
+                            "must be specified with -c option.");
+    }
+}
+
+/* Collector string. x - ip, y - port */
+#define COLLECTOR_STR_LEN sizeof("xxx.xxx.xxx.xxx:yyyyy")
+#define PORT_STR_LEN 6
+#define MAX_PORT 65535
+
+int parse_collector(const char *buf, in_addr_t *ip, in_port_t *port)
+{
+    const char delim[] = ":";
+    char *token;
+    char col_str[COLLECTOR_STR_LEN];
+    char ip_str[INET_ADDRSTRLEN];
+    char port_str[PORT_STR_LEN];
+
+    strncpy(col_str, buf, COLLECTOR_STR_LEN);
+
+    /* ip */
+    token = strtok(col_str, delim);
+    if (token == NULL) {
+        return -1;
+    }
+
+    strcpy(ip_str, token);
+    *ip = inet_addr(ip_str);
+    if (*ip == (in_addr_t)(-1)) {
+        fprintf(stderr, "%s is not valid ip address.\n", ip_str);
+        return -1;
+    }
+
+    /* port */
+    token = strtok(NULL, delim);
+    if (token == NULL) {
+        return -2;
+    }
+
+    if (strlen(token) > PORT_STR_LEN - 1) {
+        fprintf(stderr, "%s is not valid port number.\n", token);
+        return -2;
+    } else {
+        strcpy(port_str, token);
+        char *endptr;
+        uint32_t tmp = (uint32_t)strtoll(port_str, &endptr, 0);
+
+        if ((errno != 0) || (endptr == port_str)
+            || (tmp < 1) || (tmp > MAX_PORT)) {
+            fprintf(stderr, "%s is not valid port number.\n", port_str);
+            return -2;
+        }
+
+        *port = htons(tmp);
+    }
+
+    return 1;
 }
 
 int main(int argc, char *argv[])
 {
-    // int ret;
-    // options_t options;
-
-    // parse_options(argc, argv, &options);
-    // ret = EXIT_SUCCESS;
-
-    // exit(ret);
-
-    nf_table_t *nft;
-    hash_func_t hash_func;
-    nf_flow_spec_t flow_spec;
     int ret;
+    options_t options;
 
+    parse_options(argc, argv, &options);
+    ret = export_start(options.if_name, options.collector);
 
-    hash_func_init(&hash_func, MURMUR3_HASH);
-    nf_table_init(&nft, hash_func);
-
-    for (int i = 0; i < 1024 * 512; ++i) {
-        flow_spec.dst_ip = i;
-        nf_table_add(nft, flow_spec);
-    }
-
-    flow_spec.dst_ip = 10;
-    ret = nf_table_add(nft, flow_spec);
-    assert(ret == 0);
-    ret = nf_table_remove(nft, flow_spec);
-    assert(ret == 1);
-    ret = nf_table_remove(nft, flow_spec);
-    assert(ret == 0);
-
-    nf_table_free(&nft);
-
-    return 0;
+    exit(ret);
 }
