@@ -3,6 +3,7 @@
  * Distributed under the MIT software license, see the accompanying
  * file LICENSE or http://www.opensource.org/licenses/mit-license.php.
  */
+
 #include "nf_export.h"
 
 #define __USE_MISC 1 // for editor. TODO: delete this
@@ -112,7 +113,7 @@ static void *flows_checker(void *arg)
     uint32_t inactive_timeout_ms = args.exp_cfg.flow_inactive_timeout * 1000;
     struct timeval tv;
     uint32_t now_ms;
-    
+
     uint8_t export;
 
     int exit_status = EXIT_SUCCESS;

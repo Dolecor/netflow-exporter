@@ -12,7 +12,7 @@
 #include <net/if.h>
 
 /* Netflow Export V9 field type definitions */
-/* Nameings from NetFlow Version 9 Flow-Record Format, Table 6.
+/* Namings are taken from NetFlow Version 9 Flow-Record Format, Table 6.
  * (https://www.cisco.com/en/US/technologies/tk648/tk362/technologies_white_paper09186a00800a3db9.html)
  */
 enum {

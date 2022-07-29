@@ -167,30 +167,4 @@ int main(int argc, char *argv[])
     ret = export_start(options.if_name, options.col_cfg, exp_cfg);
 
     exit(ret);
-
-//     hash_func_t hash_func;
-//     nf_flow_t flow;
-//     nf_table_t nft;
-//     int ret;
-
-//     printf("1\n");
-
-//     hash_func_init(&hash_func, MURMUR3_HASH);
-//     nf_table_init(&nft, hash_func);
-
-//     for (int i = 0; i < 64; ++i) {
-//         flow.flow_spec.dst_ip = i;
-//         nf_table_add(&nft, flow);
-//     }
-//     flow.flow_spec.dst_ip = 10;
-//     ret = nf_table_add(&nft, flow);
-//     assert(ret == 0);
-//     ret = nf_table_remove(&nft, flow.flow_spec);
-//     assert(ret == 1);
-//     ret = nf_table_remove(&nft, flow.flow_spec);
-//     assert(ret == 0);
-
-//     nf_table_free(&nft);
-
-//     return 0;
  }
