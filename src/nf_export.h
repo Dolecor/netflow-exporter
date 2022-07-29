@@ -10,11 +10,17 @@
 #include <arpa/inet.h>
 #include <stdint.h>
 
-typedef struct collector_info {
+typedef struct collector_config {
     in_addr_t ip;
     in_port_t port;
-} collector_info_t;
+} collector_config_t;
 
-int export_start(const char *if_name, collector_info_t collector);
+typedef struct exporter_config {
+    uint16_t flow_active_timeout;
+    uint16_t flow_inactive_timeout;
+} exporter_config_t;
+
+int export_start(const char *if_name, collector_config_t collector_cfg,
+                 exporter_config_t exporter_cfg);
 
 #endif /* NF_EXPORT_H */

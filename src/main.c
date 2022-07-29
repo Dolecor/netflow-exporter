@@ -37,7 +37,7 @@
 
 typedef struct options {
     char if_name[IF_NAMESIZE];
-    collector_info_t collector;
+    collector_config_t col_cfg;
 } options_t;
 
 static void print_help_and_exit(char *msg)
@@ -76,8 +76,8 @@ static void parse_options(int argc, char *argv[], options_t *options)
             ifname = 1;
             break;
         case 'c':
-            if (parse_collector(optarg, &options->collector.ip,
-                                &options->collector.port)
+            if (parse_collector(optarg, &options->col_cfg.ip,
+                                &options->col_cfg.port)
                 < 0) {
                 print_help_and_exit("Invalid collector string format.");
             }
@@ -152,14 +152,45 @@ int parse_collector(const char *buf, in_addr_t *ip, in_port_t *port)
 
     return 1;
 }
-
+#include "nf_defs.h"
+#include "nf_table.h"
+#include "hash_functions/hash_functions.h"
+#include <assert.h>
 int main(int argc, char *argv[])
 {
     int ret;
     options_t options;
+    exporter_config_t exp_cfg = {.flow_active_timeout = 30,
+                                 .flow_inactive_timeout = 15};
 
     parse_options(argc, argv, &options);
-    ret = export_start(options.if_name, options.collector);
+    ret = export_start(options.if_name, options.col_cfg, exp_cfg);
 
     exit(ret);
-}
+
+//     hash_func_t hash_func;
+//     nf_flow_t flow;
+//     nf_table_t nft;
+//     int ret;
+
+//     printf("1\n");
+
+//     hash_func_init(&hash_func, MURMUR3_HASH);
+//     nf_table_init(&nft, hash_func);
+
+//     for (int i = 0; i < 64; ++i) {
+//         flow.flow_spec.dst_ip = i;
+//         nf_table_add(&nft, flow);
+//     }
+//     flow.flow_spec.dst_ip = 10;
+//     ret = nf_table_add(&nft, flow);
+//     assert(ret == 0);
+//     ret = nf_table_remove(&nft, flow.flow_spec);
+//     assert(ret == 1);
+//     ret = nf_table_remove(&nft, flow.flow_spec);
+//     assert(ret == 0);
+
+//     nf_table_free(&nft);
+
+//     return 0;
+ }

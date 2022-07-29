@@ -9,18 +9,25 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <stdio.h>
-
-int bucket_entry_add(bucket_head_t *bkt, nf_flow_spec_t flow_spec)
+int bucket_entry_add(bucket_head_t *bkt, nf_flow_t flow)
 {
     bucket_entry_t *new_entry =
         (bucket_entry_t *)malloc(sizeof(bucket_entry_t));
-    new_entry->flow.flow_spec = flow_spec;
+    new_entry->flow = flow;
 
     new_entry->next = bkt->head;
     bkt->head = new_entry;
 }
 
+int bucket_entry_update(bucket_entry_t *entry, nf_flow_export_t export_data)
+{
+    entry->flow.export_data.in_bytes += export_data.in_bytes;
+    entry->flow.export_data.in_pkts += export_data.in_pkts;
+    entry->flow.export_data.tcp_flags |= export_data.tcp_flags;
+    entry->flow.export_data.last_switched = export_data.last_switched;
+}
+
+// TODO: replace linked list with doubly linked list for more effective remove operation
 int bucket_entry_remove(bucket_head_t *bkt, bucket_entry_t *entry)
 {
     bucket_entry_t *it;
@@ -58,40 +65,34 @@ void bucket_free(bucket_head_t *bkt)
     }
 }
 
-void nf_table_init(nf_table_t **nft, hash_func_t hash_func)
+void nf_table_init(nf_table_t *nft, hash_func_t hash_func)
 {
-
-    *nft = (nf_table_t *)malloc(sizeof(nf_table_t));
-    (*nft)->size = 0;
-    (*nft)->hash_func = hash_func;
+    nft->hash_func = hash_func;
 
     for (int i = 0; i < NR_BUCKETS; ++i) {
-        (*nft)->buckets[i].head = NULL;
-        pthread_mutex_init(&((*nft)->bkt_mutexes[i]), NULL);
+        nft->buckets[i].head = NULL;
+        pthread_mutex_init(&nft->bkt_mutexes[i], NULL);
     }
 }
 
-void nf_table_free(nf_table_t **nft)
+void nf_table_free(nf_table_t *nft)
 {
     for (int i = 0; i < NR_BUCKETS; ++i) {
-        bucket_free(&((*nft)->buckets[i]));
-        pthread_mutex_destroy(&((*nft)->bkt_mutexes[i]));
+        bucket_free(&(nft->buckets[i]));
+        pthread_mutex_destroy(&nft->bkt_mutexes[i]);
     }
-
-    free(*nft);
-    *nft = NULL;
 }
-
-int nf_table_add(nf_table_t *nft, nf_flow_spec_t flow_spec)
+#include <stdio.h>
+int nf_table_add(nf_table_t *nft, nf_flow_t flow)
 {
     uint32_t hash =
-        nft->hash_func(&flow_spec, sizeof(nf_flow_spec_t)) % NR_BUCKETS;
+        nft->hash_func(&flow.flow_spec, sizeof(nf_flow_spec_t)) % NR_BUCKETS;
     bucket_entry_t *it = nft->buckets[hash].head;
 
     pthread_mutex_lock(&nft->bkt_mutexes[hash]);
 
     while (it != NULL) {
-        if (memcmp(&flow_spec, &it->flow.flow_spec, sizeof(nf_flow_spec_t))
+        if (memcmp(&flow.flow_spec, &it->flow.flow_spec, sizeof(nf_flow_spec_t))
             == 0) {
             break;
         }
@@ -99,8 +100,12 @@ int nf_table_add(nf_table_t *nft, nf_flow_spec_t flow_spec)
     }
 
     if (it == NULL) {
-        bucket_entry_add(&nft->buckets[hash], flow_spec);
-        ++nft->size;
+        bucket_entry_add(&nft->buckets[hash], flow);
+        printf("Add new flow\n");
+    }
+    else {
+        bucket_entry_update(it, flow.export_data);
+        printf("Update flow\n");
     }
 
     pthread_mutex_unlock(&nft->bkt_mutexes[hash]);
@@ -126,10 +131,19 @@ int nf_table_remove(nf_table_t *nft, nf_flow_spec_t flow_spec)
 
     if (it != NULL) {
         bucket_entry_remove(&nft->buckets[hash], it);
-        --nft->size;
     }
 
     pthread_mutex_unlock(&nft->bkt_mutexes[hash]);
 
     return (it != NULL);
+}
+
+int nf_table_acquire_bucket(nf_table_t *nft, size_t index)
+{
+    pthread_mutex_lock(&nft->bkt_mutexes[index]);
+}
+
+int nf_table_release_bucket(nf_table_t *nft, size_t index)
+{
+    pthread_mutex_unlock(&nft->bkt_mutexes[index]);
 }

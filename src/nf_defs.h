@@ -12,6 +12,9 @@
 #include <net/if.h>
 
 /* Netflow Export V9 field type definitions */
+/* Nameings from NetFlow Version 9 Flow-Record Format, Table 6.
+ * (https://www.cisco.com/en/US/technologies/tk648/tk362/technologies_white_paper09186a00800a3db9.html)
+ */
 enum {
     IN_BYTES = 1,
     IN_PKTS = 2,
@@ -71,7 +74,7 @@ typedef struct nf_flow_spec {
             uint8_t code;
         } icmp;
     };
-    uint8_t l4_protocol;
+    uint8_t ip_protocol;
     uint8_t ip_tos;
 } nf_flow_spec_t;
 
@@ -87,11 +90,11 @@ typedef struct nf_flow_export {
     uint16_t input_snmp;
     uint16_t l4_dst_port;
     uint16_t ipv4_dst_addr;
-    uint32_t last_switched;
-    uint32_t first_switched;
+    uint32_t last_switched;  /* ms */
+    uint32_t first_switched; /* ms */
     uint16_t icmp_type;
-    uint16_t flow_active_timeout;
-    uint16_t flow_inactive_timeout;
+    uint16_t flow_active_timeout;   /* secs */
+    uint16_t flow_inactive_timeout; /* secs */
     uint16_t ipv4_ident;
     uint8_t in_src_mac[6];
     uint8_t in_dst_mac[6];
@@ -107,13 +110,15 @@ typedef struct nf_flow {
 typedef struct export_packet_header {
     uint16_t version;
     uint16_t count;
-    uint32_t sys_up_time;
+    uint32_t sys_up_time; /* ms */
     uint32_t unix_secs;
     uint32_t sequence_number;
     uint32_t source_id;
 } export_packet_header_t;
 
+#define EXPORT_HEADER_SIZE sizeof(export_packet_header_t)
 #define EXPORT_DATA_SIZE 1400
+#define EXPORT_PACKET_SIZE (EXPORT_HEADER_SIZE + EXPORT_DATA_SIZE)
 typedef struct export_packet {
     export_packet_header_t header;
     uint8_t *data[EXPORT_DATA_SIZE]; /* flowsets */
