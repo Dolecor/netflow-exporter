@@ -152,15 +152,12 @@ int parse_collector(const char *buf, in_addr_t *ip, in_port_t *port)
 
     return 1;
 }
-#include "nf_defs.h"
-#include "nf_table.h"
-#include "hash_functions/hash_functions.h"
-#include <assert.h>
+
 int main(int argc, char *argv[])
 {
     int ret;
     options_t options;
-    exporter_config_t exp_cfg = {.flow_active_timeout = 30,
+    exporter_config_t exp_cfg = {.flow_active_timeout = 60,
                                  .flow_inactive_timeout = 15};
 
     parse_options(argc, argv, &options);

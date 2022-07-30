@@ -82,8 +82,8 @@ void nf_table_free(nf_table_t *nft)
         pthread_mutex_destroy(&nft->bkt_mutexes[i]);
     }
 }
-#include <stdio.h>
-int nf_table_add(nf_table_t *nft, nf_flow_t flow)
+
+int nf_table_add_or_update(nf_table_t *nft, nf_flow_t flow)
 {
     uint32_t hash =
         nft->hash_func(&flow.flow_spec, sizeof(nf_flow_spec_t)) % NR_BUCKETS;
@@ -101,11 +101,9 @@ int nf_table_add(nf_table_t *nft, nf_flow_t flow)
 
     if (it == NULL) {
         bucket_entry_add(&nft->buckets[hash], flow);
-        printf("Add new flow\n");
     }
     else {
         bucket_entry_update(it, flow.export_data);
-        printf("Update flow\n");
     }
 
     pthread_mutex_unlock(&nft->bkt_mutexes[hash]);

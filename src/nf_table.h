@@ -33,7 +33,7 @@ typedef struct nf_table {
 
 void nf_table_init(nf_table_t *nft, hash_func_t hash_func);
 void nf_table_free(nf_table_t *nft);
-int nf_table_add(nf_table_t *nft, nf_flow_t flow);
+int nf_table_add_or_update(nf_table_t *nft, nf_flow_t flow);
 int nf_table_remove(nf_table_t *nft, nf_flow_spec_t flow_spec);
 int nf_table_acquire_bucket(nf_table_t *nft, size_t index);
 int nf_table_release_bucket(nf_table_t *nft, size_t index);
