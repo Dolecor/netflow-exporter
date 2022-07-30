@@ -132,8 +132,7 @@ static void *flows_checker(void *arg)
                 sys_up_time = timeval_to_msec(tv) - sys_boot_time_ms;
 
                 /* RFC 3954: 3.2.  Flow Expiration */
-                /* NOTE: implemented only *SHOULD*-conditions (2, 3) */
-
+                /* NOTE: implemented only *SHOULD*-conditions (2, 3)
                 /* 1. detect the end of a Flow *can* */
                 /* 4. some other conditions *MAY* */
 
@@ -247,6 +246,8 @@ static void *flows_exporter(void *arg)
         data_ptr += sizeof(struct data_flowset_hdr);
         export_data_len += sizeof(struct data_flowset_hdr);
 
+        /* Export packet will be sent when thre is no data in pipe
+           or export_packet.data is full. */
         do {
             errno = 0;
             num_bytes =
@@ -263,7 +264,6 @@ static void *flows_exporter(void *arg)
             data_ptr += sizeof(struct data_record_all);
             export_data_len += sizeof(struct data_record_all);
             record_cnt += 1;
-
         } while ((!stop_flag)
                  && ((export_data_len + sizeof(struct data_record_all)
                       < EXPORT_DATA_SIZE)));

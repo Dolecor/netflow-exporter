@@ -50,8 +50,10 @@ static void print_help_and_exit(char *msg)
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -h, --help              Print this help and exit\n");
     fprintf(stderr, "  -i <ifname>             Interface name (e.g. eth0)\n");
-    fprintf(stderr, "  -c <IP:port>            IP address and UDP port number of the host\n"
-                    "                          with NetFlow collector in format IP:port\n");
+    fprintf(
+        stderr,
+        "  -c <IP:port>            IP address and UDP port number of the host\n"
+        "                          with NetFlow collector in format IP:port\n");
 
     exit(EXIT_FAILURE);
 }
@@ -64,10 +66,8 @@ static void parse_options(int argc, char *argv[], options_t *options)
     int ifname = 0;
     int colstr = 0;
 
-    static const struct option long_opts[] = {
-        {"help", no_argument, NULL, 'h'},
-        {NULL, 0, NULL, 0}
-    };
+    static const struct option long_opts[] = {{"help", no_argument, NULL, 'h'},
+                                              {NULL, 0, NULL, 0}};
 
     while ((opt = getopt_long(argc, argv, "i:c:h", long_opts, NULL)) != -1) {
         switch (opt) {
@@ -141,8 +141,8 @@ int parse_collector(const char *buf, in_addr_t *ip, in_port_t *port)
         char *endptr;
         uint32_t tmp = (uint32_t)strtoll(port_str, &endptr, 0);
 
-        if ((errno != 0) || (endptr == port_str)
-            || (tmp < 1) || (tmp > MAX_PORT)) {
+        if ((errno != 0) || (endptr == port_str) || (tmp < 1)
+            || (tmp > MAX_PORT)) {
             fprintf(stderr, "%s is not valid port number.\n", port_str);
             return -2;
         }
@@ -157,11 +157,11 @@ int main(int argc, char *argv[])
 {
     int ret;
     options_t options;
-    exporter_config_t exp_cfg = {.flow_active_timeout = 60,
+    exporter_config_t exp_cfg = {.flow_active_timeout = 30,
                                  .flow_inactive_timeout = 15};
 
     parse_options(argc, argv, &options);
     ret = export_start(options.if_name, options.col_cfg, exp_cfg);
 
     exit(ret);
- }
+}

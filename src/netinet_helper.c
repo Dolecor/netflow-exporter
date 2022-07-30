@@ -17,6 +17,16 @@
 
 #include <stdio.h>
 
+#define DEBUG_DUMMY 1
+
+#if defined(DEBUG_DUMMY)
+/* allowing to sniff all packet from interface */
+#define SOCK_PROTO htons(ETH_P_ALL)
+#else
+/* read only incoming IP packets */
+#define SOCK_PROTO htons(ETH_P_IP)
+#endif
+
 int init_raw_socket(int *raw_socket, const char *ifname, uint32_t *ifindex)
 {
     struct sockaddr_ll addr;
@@ -26,14 +36,14 @@ int init_raw_socket(int *raw_socket, const char *ifname, uint32_t *ifindex)
         return 0;
     }
 
-    *raw_socket = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_IP));
+    *raw_socket = socket(AF_PACKET, SOCK_RAW, SOCK_PROTO);
     if (*raw_socket == -1) {
         return 0;
     }
 
     addr.sll_family = AF_PACKET;
     addr.sll_ifindex = if_index;
-    addr.sll_protocol = htons(ETH_P_IP);
+    addr.sll_protocol = SOCK_PROTO;
     if (bind(*raw_socket, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
         close(*raw_socket);
         return 0;
@@ -53,8 +63,12 @@ int parse_raw_packet(uint8_t *raw_packet, parsed_packet_t *parsed_packet)
 {
     parsed_packet->eth = (struct ethhdr *)((uint8_t *)raw_packet);
 
-    /* Do not check eth->h_proto because
-       init_raw_socket initiates socket with ETH_P_IP */
+#ifdef DEBUG_DUMMY
+    if (parsed_packet->eth->h_proto != htons(ETH_P_IP)) {
+        parsed_packet->upper_proto = UNSUPPORTED;
+        return 0;
+    }
+#endif
 
     parsed_packet->ip =
         (struct iphdr *)((uint8_t *)parsed_packet->eth + sizeof(struct ethhdr));
