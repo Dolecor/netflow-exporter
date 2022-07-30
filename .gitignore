@@ -18,3 +18,7 @@ debian/*
 !debian/control
 !debian/changelog
 !debian/copyright
+
+# test pcap
+test_pcap/
+!test_pcap/README

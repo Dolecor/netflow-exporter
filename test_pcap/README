@@ -1,0 +1,5 @@
+bigFlows_ipv4only.pcap - изменённый с помощью Wireshark файл [bigFlows.pcap](https://tcpreplay.appneta.com/wiki/captures.html).
+
+GitHub не позволяет загружать файлы больше 100 МБ. Чтобы получить данный файл необходимо:
+1. Фильтр для bigFlows.pcap: ((ip.proto == 1) || (ip.proto == 6) || (ip.proto == 17)) && (eth.type == 0x0800)
+2. File -> Export Specified Packets...
