@@ -5,6 +5,14 @@ dist_doc_DATA = doc/README_md2pdf.pdf
 test_pcapdir = $(top_srcdir)/test_pcap
 dist_test_pcap_DATA = test_pcap/bigFlows_ipv4only.pcap test_pcap/README
 
+debiandir = $(top_srcdir)/debian
+dist_debian_DATA = \
+	debian/changelog \
+	debian/compat \
+	debian/control \
+	debian/copyright \
+	debian/rules
+
 EXTRA_DIST = \
 	src/netinet_helper.h 	\
 	src/utils.h 	  		\
