@@ -18,6 +18,7 @@ debian/*
 !debian/control
 !debian/changelog
 !debian/copyright
+!debian/compat
 
 
 # test pcap

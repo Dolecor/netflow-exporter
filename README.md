@@ -50,6 +50,7 @@ $ apt-get install autoconf
 
 Для сборки необходимо выполнить:
 ```bash
+$ git submodule update --init
 $ autoreconf --install
 $ mkdir build && cd build
 $ ../configure
