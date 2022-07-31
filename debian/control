@@ -1,1 +1,17 @@
-TBD
+Source: nfexp
+Section: utils
+Priority: optional
+Maintainer: Dmitry Dolenko <dolecor@gmail.com>
+Build-Depends: debhelper (>=11~), dh-autoreconf
+Standards-Version: 4.1.4
+Homepage: <https://github.com/Dolecor/netflow-exporter>
+
+Package: nfexp
+Architecture: any
+Multi-Arch: foreign
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: Exporter of NetFlow export protocol v9
+ nfexp collects packets on specified interface and sends
+ the collected flows to the collector. Records are kept
+ only for IPv4 packets with ICMP, TCP and UDP protocols.
+ 

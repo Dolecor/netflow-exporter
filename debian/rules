@@ -1,1 +1,5 @@
-TBD
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with autoreconf 
+

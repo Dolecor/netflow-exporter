@@ -59,7 +59,7 @@ $ make
 В результате выполнения команд будет создан исполняемый файл nfexp в /netflow-expoter/build/src.
 
 ## Сборка debian пакета
-TBD
+`dpkg-buildpackage -B`
 
 # Запуск сенсора
 > Для прослушивания трафика на интерфейсе используется [Raw Socket](https://man7.org/linux/man-pages/man7/raw.7.html), требующий привилегии CAP_NET_RAW. Чтобы её установить, необходимо выполнить команду:

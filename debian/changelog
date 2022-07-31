@@ -1,1 +1,6 @@
-TBD
+nfexp (1.0.0-1) UNRELEASED; urgency=low
+
+  * Initial release.
+
+ -- Dmitry Dolenko <dolecor@gmail.com>  Sun, 31 Jul 2022 03:10:54 +0300
+ 
